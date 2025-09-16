@@ -29,6 +29,7 @@
 #include "lib/jpegli/input.h"
 #include "lib/jpegli/memory_manager.h"
 #include "lib/jpegli/quant.h"
+#include "lib/jpegli/trellis.h"
 #include "lib/jpegli/simd.h"
 #include "lib/jpegli/types.h"
 
@@ -1249,6 +1250,16 @@ void jpegli_finish_compress(j_compress_ptr cinfo) {
   if (cinfo->optimize_coding || cinfo->progressive_mode) {
     jpegli::OptimizeHuffmanCodes(cinfo);
     jpegli::InitEntropyCoder(cinfo);
+  }
+
+  if (cinfo->optimize_coding && !cinfo->progressive_mode &&
+      !jpegli::IsStreamingSupported(cinfo)) {
+    if (jpegli::ApplyTrellisQuantization(cinfo)) {
+      jpegli::ResetTokenState(cinfo);
+      jpegli::TokenizeJpeg(cinfo);
+      jpegli::OptimizeHuffmanCodes(cinfo);
+      jpegli::InitEntropyCoder(cinfo);
+    }
   }
 
   if (!bitstream_done) {

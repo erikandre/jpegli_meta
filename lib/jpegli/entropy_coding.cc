@@ -511,6 +511,37 @@ void TokenizeJpeg(j_compress_ptr cinfo) {
   }
 }
 
+void ResetTokenState(j_compress_ptr cinfo) {
+  jpeg_comp_master* m = cinfo->master;
+  if (m->token_arrays == nullptr) {
+    return;
+  }
+  size_t num_arrays = static_cast<size_t>(cinfo->num_scans) * m->ysize_blocks;
+  for (size_t i = 0; i < num_arrays; ++i) {
+    m->token_arrays[i].tokens = nullptr;
+    m->token_arrays[i].num_tokens = 0;
+  }
+  m->cur_token_array = 0;
+  m->num_tokens = 0;
+  m->total_num_tokens = 0;
+  m->next_token = nullptr;
+  m->next_refinement_token = nullptr;
+  m->next_refinement_bit = nullptr;
+  for (int i = 0; i < cinfo->num_scans; ++i) {
+    ScanTokenInfo* sti = &m->scan_token_info[i];
+    sti->num_tokens = 0;
+    sti->num_nonzeros = 0;
+    sti->num_future_nonzeros = 0;
+    sti->token_offset = 0;
+    if (sti->restarts != nullptr && sti->num_restarts > 0) {
+      std::fill(sti->restarts, sti->restarts + sti->num_restarts, 0);
+    }
+    sti->tokens = nullptr;
+    sti->refbits = nullptr;
+    sti->eobruns = nullptr;
+  }
+}
+
 namespace {
 
 struct Histogram {
