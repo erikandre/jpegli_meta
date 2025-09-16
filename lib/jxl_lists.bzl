@@ -200,6 +200,8 @@ libjxl_jpegli_sources = [
     "jpegli/memory_manager.h",
     "jpegli/quant.cc",
     "jpegli/quant.h",
+    "jpegli/trellis.cc",
+    "jpegli/trellis.h",
     "jpegli/render.cc",
     "jpegli/render.h",
     "jpegli/simd.cc",
